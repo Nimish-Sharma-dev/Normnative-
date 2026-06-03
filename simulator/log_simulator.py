@@ -23,11 +23,11 @@ from pathlib import Path
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Add project root (Normnative/) to Python path so absolute imports work.
-# This file is at simulator/log_simulator.py → project root = parent (..)
-PROJECT_ROOT = Path(__file__).resolve().parent
+# This file is at simulator/log_simulator.py → project root = parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
-# Now we can import using absolute paths from project root
+# Now we can import using absolute package paths
 from simulator.attack_scenarios import APT_SCENARIO, APT_SCENARIO_FAST, BENIGN_EVENTS
 # ─────────────────────────────────────────────────────────────────────────────
 
