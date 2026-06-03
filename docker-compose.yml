@@ -1,0 +1,57 @@
+ersion: "3.9"
+
+services:
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  ingestor:
+    build: ./ingestor
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./output:/app/output
+    restart: unless-stopped
+    command: python normative_ingestor.py --redis-host redis
+
+  simulator:
+    build: ./ingestor
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_HOST=redis
+    profiles:
+      - demo   # only starts with: docker compose --profile demo up
+    command: python simulator/log_simulator.py --redis-host redis --speed 2 --benign-duration 30
+
+  # Dev 2 (ml_models) and Dev 3 (gnn) plug in here
+  # ml_models:
+  #   build: ./ml_models
+  #   depends_on: [redis]
+  #
+  # gnn:
+  #   build: ./gnn
+  #   depends_on: [redis, ml_models]
+
+  # Dev 4 (api + frontend) plugs in here
+  # api:
+  #   build: ./api
+  #   ports: ["8000:8000"]
+  #   depends_on: [redis]
+  #
+  # frontend:
+  #   build: ./frontend
+  #   ports: ["3000:3000"]
+  #   depends_on: [api]
