@@ -10,6 +10,17 @@ the complete Incident JSON, and:
 Incident JSON schema is the final contract consumed by Dev 4 (dashboard + LLM report).
 """
 
+import sys
+from pathlib import Path
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Add project root (Normnative/) to Python path so absolute imports work.
+# This file is at src/gnn_fusion/incident_assembler.py → project root = parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+# ─────────────────────────────────────────────────────────────────────────────
+
 import json
 import logging
 import os
@@ -21,10 +32,10 @@ from typing import Optional
 
 import redis
 
-from graph_builder import AttackGraph, GraphEdgeSubscriber
-from gnn_model import GNNInference
-from mitre_transitions import TECHNIQUE_NAMES, TECHNIQUE_TACTICS, get_top_next_technique
-from risk_scorer import aggregate_mitre_severity, compute_risk_score, compute_severity
+from src.gnn_fusion.graph_builder import AttackGraph, GraphEdgeSubscriber
+from src.gnn_fusion.gnn_model import GNNInference
+from src.gnn_fusion.mitre_transitions import TECHNIQUE_NAMES, TECHNIQUE_TACTICS, get_top_next_technique
+from src.gnn_fusion.risk_scorer import aggregate_mitre_severity, compute_risk_score, compute_severity
 
 logging.basicConfig(
     level=logging.INFO,

@@ -8,6 +8,17 @@ Redis channels:
   LPUSH+PUBLISH: scores:anomaly    — ANOMALY_SCORE_OBJECT (consumed by Dev 3 GNN)
 """
 
+import sys
+from pathlib import Path
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Add project root (Normnative/) to Python path so absolute imports work.
+# This file is at src/ml_models/anomaly_scorer.py → project root = parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+# ─────────────────────────────────────────────────────────────────────────────
+
 import json
 import logging
 import collections
@@ -15,9 +26,9 @@ from datetime import datetime, timezone
 
 import redis
 
-from lstm_autoencoder import score_window_lstm, WINDOW_SIZE, ANOMALY_THRESHOLD
-from isolation_forest import get_scorer
-from schema_validator import validate_ml_feature_vector, validate_anomaly_score
+from src.ml_models.lstm_autoencoder import score_window_lstm, WINDOW_SIZE, ANOMALY_THRESHOLD
+from src.ml_models.isolation_forest import get_scorer
+from src.ml_models.schema_validator import validate_ml_feature_vector, validate_anomaly_score
 
 # ---------------------------------------------------------------------------
 # Config

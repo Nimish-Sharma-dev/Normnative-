@@ -24,11 +24,18 @@ from collections import defaultdict, deque
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+# ─────────────────────────────────────────────────────────────────────────────
+# Add project root (Normnative/) to Python path so absolute imports work.
+# This file is at src/ingestor/normative_ingestor.py → project root = parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+# ─────────────────────────────────────────────────────────────────────────────
 
-from parsers import PARSER_MAP
-from feature_extractor import FeatureExtractor
-from mitre_lookup import match_rule, MITRE_BY_TECHNIQUE
+# Now absolute imports from project root
+from src.ingestor.parsers import PARSER_MAP
+from src.ingestor.feature_extractor import FeatureExtractor
+from src.ingestor.mitre_lookup import match_rule, MITRE_BY_TECHNIQUE
 
 # ── Required keys every Normalized Event Object must have ────────────────────
 REQUIRED_KEYS = {

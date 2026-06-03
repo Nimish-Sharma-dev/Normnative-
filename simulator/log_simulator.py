@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =============================================================================
-# normative/ingestor/simulator/log_simulator.py
+# normative/simulator/log_simulator.py
 #
 # Usage:
 #   python log_simulator.py                    # full APT, real-time speed
@@ -21,13 +21,15 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Allow running from any directory
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-
-try:
-    from simulator.attack_scenarios import APT_SCENARIO, APT_SCENARIO_FAST, BENIGN_EVENTS
-except ModuleNotFoundError:
-    from attack_scenarios import APT_SCENARIO, APT_SCENARIO_FAST, BENIGN_EVENTS
+# ─────────────────────────────────────────────────────────────────────────────
+# Add project root (Normnative/) to Python path so absolute imports work.
+# This file is at simulator/log_simulator.py → project root = parent (..)
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+# Now we can import using absolute paths from project root
+from simulator.attack_scenarios import APT_SCENARIO, APT_SCENARIO_FAST, BENIGN_EVENTS
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 def make_event(partial: dict) -> dict:

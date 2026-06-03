@@ -1,21 +1,32 @@
 #!/usr/bin/env python3
 # =============================================================================
 # normative/tests/test_dev1.py
-# Run: python -m pytest tests/test_dev1.py -v
-#      OR: python -m tests.test_dev1  (standalone)
+#
+# Run:
+#   python -m pytest tests/test_dev1.py -v
+#   python tests/test_dev1.py                (standalone)
 # =============================================================================
 
 import json
 import sys
 from pathlib import Path
 
-# ---------- RELATIVE IMPORTS ----------
-from ..src.ingestor.parsers.auth_parser import parse as parse_auth
-from ..src.ingestor.parsers.network_parser import parse as parse_network, detect_payload_flags
-from ..src.ingestor.parsers.endpoint_parser import parse as parse_endpoint
-from ..src.ingestor.parsers.syslog_parser import parse as parse_syslog
-from ..src.ingestor.feature_extractor import FeatureExtractor, FEATURE_ORDER, INPUT_DIM
-from ..src.ingestor.mitre_lookup import match_rule, MITRE_RULES, MITRE_BY_TECHNIQUE
+# ─────────────────────────────────────────────────────────────────────────────
+# Ensure the project root (Normnative/) is in sys.path so absolute imports work.
+# This file is at tests/test_dev1.py → project root = parent directory.
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Now absolute imports from the project root
+from src.ingestor.parsers.auth_parser import parse as parse_auth
+from src.ingestor.parsers.network_parser import parse as parse_network, detect_payload_flags
+from src.ingestor.parsers.endpoint_parser import parse as parse_endpoint
+from src.ingestor.parsers.syslog_parser import parse as parse_syslog
+from src.ingestor.feature_extractor import FeatureExtractor, FEATURE_ORDER, INPUT_DIM
+from src.ingestor.mitre_lookup import match_rule, MITRE_RULES, MITRE_BY_TECHNIQUE
+# ─────────────────────────────────────────────────────────────────────────────
+
 PASS = "✅ PASS"
 FAIL = "❌ FAIL"
 results = []
@@ -119,7 +130,7 @@ e = parse_endpoint(SYSMON_PROC, "192.168.1.10")
 check("Sysmon proc create parses",    e is not None)
 check("action = PROCESS_SPAWN",       e and e["action"] == "PROCESS_SPAWN")
 check("parent_proc = nginx",          e and e["parent_proc"] == "nginx")
-check("child_proc = /bin/bash",       e and e["child_proc"] == "/bin/bash")  # basename
+check("child_proc = /bin/bash",       e and e["child_proc"] == "/bin/bash")
 check("non_admin_user = True",        e and e["non_admin_user"] == True)
 
 e2 = parse_endpoint(SYSMON_FILE, "192.168.1.10")
