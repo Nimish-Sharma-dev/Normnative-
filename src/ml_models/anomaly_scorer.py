@@ -78,6 +78,14 @@ def score_window(host_key: str, feature_vectors: list[dict]) -> dict:
         COMPOSITE_LSTM_WEIGHT * lstm_score + COMPOSITE_IFOREST_WEIGHT * iforest_score, 6
     )
 
+    all_matched = []
+    seen_rules = set()
+    for fv in feature_vectors:
+        for r in fv.get("matched_rules", []):
+            if r["rule_id"] not in seen_rules:
+                seen_rules.add(r["rule_id"])
+                all_matched.append(r)
+
     return {
         "event_id":           feature_vectors[-1]["event_id"],
         "timestamp":          datetime.now(timezone.utc).isoformat(),
@@ -86,6 +94,8 @@ def score_window(host_key: str, feature_vectors: list[dict]) -> dict:
         "composite_ml_score": composite,
         "is_anomaly":         composite > COMPOSITE_THRESHOLD,
         "window_events":      [fv["event_id"] for fv in feature_vectors],
+        "src_ip":             host_key,
+        "matched_rules":      all_matched,
     }
 
 

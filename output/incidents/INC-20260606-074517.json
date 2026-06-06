@@ -1,0 +1,86 @@
+{
+  "incident_id": "INC-20260606-074517",
+  "detected_at": "2026-06-06T07:45:17.309919+00:00",
+  "severity": "critical",
+  "risk_score": 81,
+  "affected_assets": [
+    "203.0.113.99"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "technique_id": "T1110",
+      "technique_name": "Brute Force",
+      "tactic": "Credential Access",
+      "confidence": 0.42061907052993774,
+      "timestamp": "2026-06-06T07:45:17.309919+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 2,
+      "technique_id": "T1190",
+      "technique_name": "Exploit Public-Facing Application",
+      "tactic": "Initial Access",
+      "confidence": 0.42061907052993774,
+      "timestamp": "2026-06-06T07:45:17.309919+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 3,
+      "technique_id": "T1059",
+      "technique_name": "Command and Scripting Interpreter",
+      "tactic": "Execution",
+      "confidence": 0.42061907052993774,
+      "timestamp": "2026-06-06T07:45:17.309919+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 4,
+      "technique_id": "T1547",
+      "technique_name": "Boot or Logon Autostart Execution",
+      "tactic": "Persistence",
+      "confidence": 0.42061907052993774,
+      "timestamp": "2026-06-06T07:45:17.309919+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 5,
+      "technique_id": "T1490",
+      "technique_name": "Inhibit System Recovery",
+      "tactic": "Impact",
+      "confidence": 0.42061907052993774,
+      "timestamp": "2026-06-06T07:45:17.309919+00:00",
+      "event_ids": []
+    }
+  ],
+  "predicted_next": {
+    "technique_id": "T1486",
+    "technique_name": "Data Encrypted for Impact",
+    "tactic": "Impact",
+    "probability": 0.5176
+  },
+  "anomaly_scores": {
+    "lstm": 1.0,
+    "iforest": 0.546422,
+    "gnn": 0.42061907052993774
+  },
+  "model_metrics": {},
+  "llm_context": {
+    "summary": "Brute Force \u2192 Exploit Public-Facing Application \u2192 Command and Scripting Interpreter \u2192 Boot or Logon Autostart Execution \u2192 Inhibit System Recovery",
+    "mitre_tags": [
+      "T1110",
+      "T1190",
+      "T1059",
+      "T1547",
+      "T1490"
+    ],
+    "severity_reason": "Adversary attempted to delete volume shadow copies or system backups to prevent data recovery prior to ransomware execution."
+  },
+  "raw_event_ids": [
+    "b80b62f7-03e6-4ee8-9b74-0481bd7069ae",
+    "02013a97-5194-4168-8b17-09c747b45df1",
+    "4c6f5031-1c0d-4a28-9b75-92bf0c985b4e",
+    "907e3d48-cae4-4cc1-98a5-067eb4612f25",
+    "8bbbe443-54d2-4f23-a86c-d2af2038305f"
+  ]
+}

@@ -33,7 +33,7 @@ FEATURE_ORDER = [
 #  to avoid dimensionality noise on single-event scoring.)
 
 MODEL_PATH       = Path(__file__).parent / "models" / "iforest.pkl"
-BENIGN_BOOTSTRAP = 500   # events consumed during benign simulator phase
+BENIGN_BOOTSTRAP = 20    # events consumed during benign simulator phase (lowered for demo)
 
 
 # ---------------------------------------------------------------------------

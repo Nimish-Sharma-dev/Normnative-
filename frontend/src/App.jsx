@@ -15,7 +15,7 @@ export default function App() {
 
   // Track WS connectivity for status dot
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8000/ws/live")
+    const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/live`)
     ws.onopen  = () => setLive(true)
     ws.onclose = () => setLive(false)
     ws.onmessage = () => setLastUpdated(new Date().toLocaleTimeString())

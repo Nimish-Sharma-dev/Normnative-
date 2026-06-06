@@ -34,7 +34,7 @@ INPUT_DIM    = len(FEATURE_ORDER)   # 11
 HIDDEN_DIM   = 64
 LATENT_DIM   = 16
 NUM_LAYERS   = 2
-WINDOW_SIZE  = 20                   # events per sequence
+WINDOW_SIZE  = 5                    # events per sequence (lowered for demo)
 ANOMALY_THRESHOLD = 0.6             # reconstruction error above this → anomaly
 
 WEIGHTS_PATH = Path(__file__).parent / "models" / "lstm_ae_weights.pt"

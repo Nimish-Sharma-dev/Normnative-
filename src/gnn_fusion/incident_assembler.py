@@ -53,12 +53,12 @@ REDIS_DB   = int(os.getenv("REDIS_DB", 0))
 
 ANOMALY_CHANNEL  = "scores:anomaly"
 INCIDENT_CHANNEL = "incidents:new"
-OUTPUT_DIR       = Path(os.getenv("INCIDENT_OUTPUT_DIR", "/app/output/incidents"))
+OUTPUT_DIR       = Path(os.getenv("INCIDENT_OUTPUT_DIR", str(Path(__file__).resolve().parents[2] / "output" / "incidents")))
 
 GNN_WEIGHTS_PATH = os.getenv("GNN_WEIGHTS_PATH", "/app/gnn/models/gnn_weights.pt")
 
 # Composite ML score threshold — only process events Dev 2 already flagged
-ANOMALY_THRESHOLD = 0.6
+ANOMALY_THRESHOLD = 0.3
 
 # ---------------------------------------------------------------------------
 # Node feature accumulator

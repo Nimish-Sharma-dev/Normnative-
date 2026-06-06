@@ -29,7 +29,7 @@ export default function IncidentFeed({ onSelect }) {
       .catch(console.error)
 
     // Live updates via WebSocket
-    const ws = new WebSocket("ws://localhost:8000/ws/live")
+    const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/live`)
     ws.onmessage = (e) => {
       try {
         const inc = JSON.parse(e.data)

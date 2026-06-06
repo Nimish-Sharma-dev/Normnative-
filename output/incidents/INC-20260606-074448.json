@@ -1,0 +1,34 @@
+{
+  "incident_id": "INC-20260606-074448",
+  "detected_at": "2026-06-06T07:44:48.684472+00:00",
+  "severity": "low",
+  "risk_score": 24,
+  "affected_assets": [
+    "203.0.113.99"
+  ],
+  "attack_chain": [],
+  "predicted_next": {
+    "technique_id": "T1190",
+    "technique_name": "Exploit Public-Facing Application",
+    "tactic": "Initial Access",
+    "probability": 0.222
+  },
+  "anomaly_scores": {
+    "lstm": 1.0,
+    "iforest": 0.5,
+    "gnn": 0.4204792380332947
+  },
+  "model_metrics": {},
+  "llm_context": {
+    "summary": "No MITRE techniques matched.",
+    "mitre_tags": [],
+    "severity_reason": "Risk score 24 driven by ML anomaly and GNN classification."
+  },
+  "raw_event_ids": [
+    "f165f11f-b63d-4dab-b1cc-18a5dcf55b10",
+    "2a595175-538d-46b6-b3c6-22aa6c950d9c",
+    "cf9ebe90-2ac7-4b85-8870-649b5ed8d6f1",
+    "857d0d5d-d868-4552-863d-2385f5f95c7c",
+    "07934753-868e-4397-93ef-af8a4d66fa80"
+  ]
+}

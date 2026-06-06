@@ -5,9 +5,9 @@ Risk scoring functions that fuse outputs from Dev 2 (ML anomaly scores),
 the GNN (graph classification confidence), and Dev 1 (MITRE severity weights).
 
 Formula:
-    raw = 0.4 × composite_ml_score
-        + 0.4 × gnn_confidence
-        + 0.2 × mitre_severity_weight
+    raw = 0.2 × composite_ml_score
+        + 0.2 × gnn_confidence
+        + 0.6 × mitre_severity_weight
     risk_score = min(100, int(raw × 100))
 
 Severity thresholds:
@@ -59,7 +59,7 @@ def compute_risk_score(
     gnn = _clamp(gnn_confidence, "gnn_confidence")
     msw = _clamp(mitre_severity_weight, "mitre_severity_weight")
 
-    raw = (0.4 * cms) + (0.4 * gnn) + (0.2 * msw)
+    raw = (0.2 * cms) + (0.2 * gnn) + (0.6 * msw)
     score = min(100, int(raw * 100))
 
     logger.debug(

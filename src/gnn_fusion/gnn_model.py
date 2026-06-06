@@ -27,8 +27,14 @@ from torch_geometric.data import Data
 from torch_geometric.nn import GATConv, SAGEConv
 from torch_geometric.utils import from_networkx
 
-from graph_builder import AttackGraph
-from mitre_transitions import TECHNIQUE_NAMES, TRANSITION_MATRIX
+import sys
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.gnn_fusion.graph_builder import AttackGraph
+from src.gnn_fusion.mitre_transitions import TECHNIQUE_NAMES, TRANSITION_MATRIX
 
 logger = logging.getLogger(__name__)
 

@@ -106,6 +106,7 @@ class NormativeIngestor:
         # ── 7. MITRE rule matching ────────────────────────────────────────
         recent = list(self._host_windows[host_key])
         matched_rules = match_rule(event, recent_events=recent)
+        event["matched_rules"] = matched_rules or []
         if matched_rules:
             self._stats["mitre_hits"] += len(matched_rules)
             for rule in matched_rules:
@@ -118,6 +119,15 @@ class NormativeIngestor:
         self.r.publish("features:graph", json.dumps(graph_edge))
 
         if ml_vector is not None:
+            window_events = self.extractor._windows[host_key]
+            all_matched = []
+            seen_rules = set()
+            for e in window_events:
+                for r in e.get("matched_rules", []):
+                    if r["rule_id"] not in seen_rules:
+                        seen_rules.add(r["rule_id"])
+                        all_matched.append(r)
+            ml_vector["matched_rules"] = all_matched
             self.r.lpush("features:ml", json.dumps(ml_vector))
             self.r.publish("features:ml", json.dumps(ml_vector))
 

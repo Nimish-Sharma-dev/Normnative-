@@ -46,7 +46,7 @@ export default function ThreatMap({ selectedIncident }) {
       })
       .catch(console.error)
 
-    const ws = new WebSocket("ws://localhost:8000/ws/live")
+    const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/live`)
     ws.onmessage = (e) => {
       try {
         const inc = JSON.parse(e.data)
