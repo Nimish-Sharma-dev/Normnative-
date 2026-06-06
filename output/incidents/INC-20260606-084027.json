@@ -1,0 +1,56 @@
+{
+  "incident_id": "INC-20260606-084027",
+  "detected_at": "2026-06-06T08:40:27.441920+00:00",
+  "severity": "high",
+  "risk_score": 74,
+  "affected_assets": [
+    "203.0.113.99"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "technique_id": "T1048",
+      "technique_name": "Exfiltration Over Alternative Protocol",
+      "tactic": "Exfiltration",
+      "confidence": 0.41808849573135376,
+      "timestamp": "2026-06-06T08:40:27.441920+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 2,
+      "technique_id": "T1110",
+      "technique_name": "Brute Force",
+      "tactic": "Credential Access",
+      "confidence": 0.41808849573135376,
+      "timestamp": "2026-06-06T08:40:27.441920+00:00",
+      "event_ids": []
+    }
+  ],
+  "predicted_next": {
+    "technique_id": "T1059",
+    "technique_name": "Command and Scripting Interpreter",
+    "tactic": "Execution",
+    "probability": 0.3394
+  },
+  "anomaly_scores": {
+    "lstm": 1.0,
+    "iforest": 0.451458,
+    "gnn": 0.41808849573135376
+  },
+  "model_metrics": {},
+  "llm_context": {
+    "summary": "Exfiltration Over Alternative Protocol \u2192 Brute Force",
+    "mitre_tags": [
+      "T1048",
+      "T1110"
+    ],
+    "severity_reason": "Multiple failed login attempts followed by a successful authentication, indicating a password guessing or brute-force attack."
+  },
+  "raw_event_ids": [
+    "34f0776c-29ca-446f-822c-0fb6e609d2a8",
+    "0754ca05-cca1-4a84-8812-95b18c8208f3",
+    "5917954f-59df-4798-bdaf-f7258ba5b56a",
+    "809622d9-4056-4438-a6f6-f167443c22c8",
+    "140d870b-9c86-4300-9f8b-078d189fe2c9"
+  ]
+}

@@ -1,120 +1,67 @@
-// NORMATIVE // DEV 4 — ThreatMap
-// Reads from incidents via WebSocket:
-//   incident.affected_assets[]   → IPs to geo-locate
-//   incident.risk_score          → circle radius (risk_score / 10)
-//   incident.severity            → circle color
-//   incident.attack_chain[0].technique_name → popup
-//   incident.incident_id         → popup label
-//
-// Hardcoded geolocations for simulator IPs:
-//   203.0.113.99  → Beijing, China       (39.9042, 116.4074)
-//   45.33.32.156  → Fremont, CA, USA     (37.5485, -121.9886)
-//   192.168.1.*   → internal (omitted from world map)
+import React, { useEffect, useRef } from 'react';
 
-import { useEffect, useState, useRef } from "react"
-import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet"
-import "leaflet/dist/leaflet.css"
+const ThreatMap = ({ incidents }) => {
+  const canvasRef = useRef(null);
 
-const HARDCODED_GEO = {
-  "203.0.113.99":  { lat: 39.9042,  lng: 116.4074, label: "Beijing, China"  },
-  "45.33.32.156":  { lat: 37.5485,  lng: -121.9886, label: "Fremont, CA"    },
-}
-
-const SEV_MAP_COLOR = {
-  critical: "#dc2626",
-  high:     "#f97316",
-  medium:   "#eab308",
-  low:      "#16a34a",
-}
-
-function resolveGeo(ip) {
-  if (HARDCODED_GEO[ip]) return HARDCODED_GEO[ip]
-  if (ip?.startsWith("192.168.") || ip?.startsWith("10.") || ip?.startsWith("172.")) return null
-  return null // unknown external — skip for now
-}
-
-export default function ThreatMap({ selectedIncident }) {
-  const [markers, setMarkers] = useState([])
+  // Dummy coordinates for demonstration – replace with real geo-ip mapping
+  const getCoords = (ip) => {
+    const map = {
+      '203.0.113.99': { lat: 39.9042, lng: 116.4074 }, // Beijing
+      '45.33.32.156': { lat: 37.5485, lng: -121.9886 }, // Fremont
+      '192.168.1.10': { lat: 37.7749, lng: -122.4194 }, // internal (SF)
+      '192.168.1.20': { lat: 37.7749, lng: -122.4194 },
+      '192.168.1.30': { lat: 37.7749, lng: -122.4194 },
+    };
+    return map[ip] || { lat: 0, lng: 0 };
+  };
 
   useEffect(() => {
-    // Seed map from existing incidents
-    fetch("/api/incidents")
-      .then(r => r.json())
-      .then(incidents => {
-        const pts = buildMarkers(incidents)
-        setMarkers(pts)
-      })
-      .catch(console.error)
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = canvas.clientWidth;
+    const height = canvas.height = canvas.clientHeight;
 
-    const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/live`)
-    ws.onmessage = (e) => {
-      try {
-        const inc = JSON.parse(e.data)
-        const pts = buildMarkers([inc])
-        setMarkers(prev => [...prev, ...pts])
-      } catch { /* ignore */ }
+    // Simple world map outline (dummy)
+    ctx.fillStyle = '#1a202c';
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = '#4a5568';
+    ctx.lineWidth = 1;
+    // draw a few lines as continents (placeholder)
+    for (let i = 0; i < 10; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * 50, 0);
+      ctx.lineTo(i * 30, height);
+      ctx.stroke();
     }
-    return () => ws.close()
-  }, [])
+
+    // Plot attacker IPs from incidents
+    const ips = new Set();
+    incidents.forEach(inc => {
+      inc.affected_assets.forEach(ip => ips.add(ip));
+    });
+
+    ips.forEach(ip => {
+      const coords = getCoords(ip);
+      if (coords.lat === 0 && coords.lng === 0) return;
+      const x = (coords.lng + 180) * (width / 360);
+      const y = (90 - coords.lat) * (height / 180);
+      ctx.fillStyle = '#e53e3e';
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.fillStyle = 'white';
+      ctx.font = '12px sans-serif';
+      ctx.fillText(ip, x + 8, y - 4);
+    });
+  }, [incidents]);
 
   return (
-    <div className="h-full rounded overflow-hidden border border-gray-800">
-      <MapContainer
-        center={[20, 0]}
-        zoom={2}
-        style={{ height: "100%", width: "100%", background: "#111827" }}
-        attributionControl={false}
-      >
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-        />
-        {markers.map((m, i) => (
-          <CircleMarker
-            key={i}
-            center={[m.lat, m.lng]}
-            radius={m.radius}
-            pathOptions={{
-              color: m.color,
-              fillColor: m.color,
-              fillOpacity: 0.55,
-              weight: 1.5,
-            }}
-          >
-            <Popup>
-              <div className="text-xs">
-                <div><strong>{m.incidentId}</strong></div>
-                <div>IP: {m.ip}</div>
-                <div>Risk: {m.riskScore}</div>
-                <div>Technique: {m.technique}</div>
-                <div>{m.geoLabel}</div>
-              </div>
-            </Popup>
-          </CircleMarker>
-        ))}
-      </MapContainer>
+    <div>
+      <h3 className="font-bold text-lg mb-2">Threat Map</h3>
+      <canvas ref={canvasRef} style={{ width: '100%', height: '300px', background: '#1a202c' }} />
     </div>
-  )
-}
+  );
+};
 
-function buildMarkers(incidents) {
-  const out = []
-  for (const inc of incidents) {
-    for (const ip of inc.affected_assets ?? []) {
-      const geo = resolveGeo(ip)
-      if (!geo) continue
-      out.push({
-        lat:        geo.lat,
-        lng:        geo.lng,
-        geoLabel:   geo.label,
-        ip,
-        radius:     Math.max(4, (inc.risk_score ?? 0) / 10),
-        color:      SEV_MAP_COLOR[inc.severity] ?? "#6b7280",
-        incidentId: inc.incident_id,
-        riskScore:  inc.risk_score,
-        technique:  inc.attack_chain?.[0]?.technique_name ?? "—",
-      })
-    }
-  }
-  return out
-}
+export default ThreatMap;

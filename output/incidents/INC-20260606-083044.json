@@ -1,0 +1,96 @@
+{
+  "incident_id": "INC-20260606-083044",
+  "detected_at": "2026-06-06T08:30:44.977592+00:00",
+  "severity": "critical",
+  "risk_score": 84,
+  "affected_assets": [
+    "203.0.113.99"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "technique_id": "T1059",
+      "technique_name": "Command and Scripting Interpreter",
+      "tactic": "Execution",
+      "confidence": 0.4181140959262848,
+      "timestamp": "2026-06-06T08:30:44.977592+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 2,
+      "technique_id": "T1547",
+      "technique_name": "Boot or Logon Autostart Execution",
+      "tactic": "Persistence",
+      "confidence": 0.4181140959262848,
+      "timestamp": "2026-06-06T08:30:44.977592+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 3,
+      "technique_id": "T1490",
+      "technique_name": "Inhibit System Recovery",
+      "tactic": "Impact",
+      "confidence": 0.4181140959262848,
+      "timestamp": "2026-06-06T08:30:44.977592+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 4,
+      "technique_id": "T1486",
+      "technique_name": "Data Encrypted for Impact",
+      "tactic": "Impact",
+      "confidence": 0.4181140959262848,
+      "timestamp": "2026-06-06T08:30:44.977592+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 5,
+      "technique_id": "T1048",
+      "technique_name": "Exfiltration Over Alternative Protocol",
+      "tactic": "Exfiltration",
+      "confidence": 0.4181140959262848,
+      "timestamp": "2026-06-06T08:30:44.977592+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 6,
+      "technique_id": "T1110",
+      "technique_name": "Brute Force",
+      "tactic": "Credential Access",
+      "confidence": 0.4181140959262848,
+      "timestamp": "2026-06-06T08:30:44.977592+00:00",
+      "event_ids": []
+    }
+  ],
+  "predicted_next": {
+    "technique_id": "T1059",
+    "technique_name": "Command and Scripting Interpreter",
+    "tactic": "Execution",
+    "probability": 0.3394
+  },
+  "anomaly_scores": {
+    "lstm": 1.0,
+    "iforest": 0.473156,
+    "gnn": 0.4181140959262848
+  },
+  "model_metrics": {},
+  "llm_context": {
+    "summary": "Command and Scripting Interpreter \u2192 Boot or Logon Autostart Execution \u2192 Inhibit System Recovery \u2192 Data Encrypted for Impact \u2192 Exfiltration Over Alternative Protocol \u2192 Brute Force",
+    "mitre_tags": [
+      "T1059",
+      "T1547",
+      "T1490",
+      "T1486",
+      "T1048",
+      "T1110"
+    ],
+    "severity_reason": "Multiple failed login attempts followed by a successful authentication, indicating a password guessing or brute-force attack."
+  },
+  "raw_event_ids": [
+    "57e50757-490a-4bb1-a53e-cd69fab0a504",
+    "4f922d38-1894-4a07-b20d-8aa4a44f8b8b",
+    "82fe69f4-6564-4606-92f0-5ebe571549af",
+    "00a4112f-d9a6-4592-8982-87027efc9801",
+    "4fcf02db-2bbd-4031-9b2b-ea52af69a559"
+  ]
+}

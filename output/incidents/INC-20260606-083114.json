@@ -1,0 +1,106 @@
+{
+  "incident_id": "INC-20260606-083114",
+  "detected_at": "2026-06-06T08:31:14.862396+00:00",
+  "severity": "critical",
+  "risk_score": 84,
+  "affected_assets": [
+    "203.0.113.99"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "technique_id": "T1110",
+      "technique_name": "Brute Force",
+      "tactic": "Credential Access",
+      "confidence": 0.41808682680130005,
+      "timestamp": "2026-06-06T08:31:14.862396+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 2,
+      "technique_id": "T1190",
+      "technique_name": "Exploit Public-Facing Application",
+      "tactic": "Initial Access",
+      "confidence": 0.41808682680130005,
+      "timestamp": "2026-06-06T08:31:14.862396+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 3,
+      "technique_id": "T1059",
+      "technique_name": "Command and Scripting Interpreter",
+      "tactic": "Execution",
+      "confidence": 0.41808682680130005,
+      "timestamp": "2026-06-06T08:31:14.862396+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 4,
+      "technique_id": "T1547",
+      "technique_name": "Boot or Logon Autostart Execution",
+      "tactic": "Persistence",
+      "confidence": 0.41808682680130005,
+      "timestamp": "2026-06-06T08:31:14.862396+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 5,
+      "technique_id": "T1490",
+      "technique_name": "Inhibit System Recovery",
+      "tactic": "Impact",
+      "confidence": 0.41808682680130005,
+      "timestamp": "2026-06-06T08:31:14.862396+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 6,
+      "technique_id": "T1486",
+      "technique_name": "Data Encrypted for Impact",
+      "tactic": "Impact",
+      "confidence": 0.41808682680130005,
+      "timestamp": "2026-06-06T08:31:14.862396+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 7,
+      "technique_id": "T1048",
+      "technique_name": "Exfiltration Over Alternative Protocol",
+      "tactic": "Exfiltration",
+      "confidence": 0.41808682680130005,
+      "timestamp": "2026-06-06T08:31:14.862396+00:00",
+      "event_ids": []
+    }
+  ],
+  "predicted_next": {
+    "technique_id": "T1547",
+    "technique_name": "Boot or Logon Autostart Execution",
+    "tactic": "Persistence",
+    "probability": 0.4033
+  },
+  "anomaly_scores": {
+    "lstm": 1.0,
+    "iforest": 0.52902,
+    "gnn": 0.41808682680130005
+  },
+  "model_metrics": {},
+  "llm_context": {
+    "summary": "Brute Force \u2192 Exploit Public-Facing Application \u2192 Command and Scripting Interpreter \u2192 Boot or Logon Autostart Execution \u2192 Inhibit System Recovery \u2192 Data Encrypted for Impact \u2192 Exfiltration Over Alternative Protocol",
+    "mitre_tags": [
+      "T1110",
+      "T1190",
+      "T1059",
+      "T1547",
+      "T1490",
+      "T1486",
+      "T1048"
+    ],
+    "severity_reason": "Unusually large outbound data transfer to an unverified external destination, indicating a data breach or exfiltration event."
+  },
+  "raw_event_ids": [
+    "49e06d4b-ad61-4c25-9a89-6e89e4e22107",
+    "e9f9bf78-8839-4420-9ae0-b25fca982145",
+    "426ba8f8-c294-469a-9719-6bd66e8d6a62",
+    "7b537aae-e242-422f-9a5c-1fe7b12e4bbe",
+    "68276c21-0b6f-425c-bb29-dd2521014f2c"
+  ]
+}

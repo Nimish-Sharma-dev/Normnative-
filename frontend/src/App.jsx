@@ -1,75 +1,79 @@
-// NORMATIVE // DEV 4 — Root App
-// Two-column layout wiring all 6 components together.
-import { useState, useEffect } from "react"
-import IncidentFeed     from "./components/IncidentFeed"
-import AttackTimeline   from "./components/AttackTimeline"
-import ThreatMap        from "./components/ThreatMap"
-import RiskGauge        from "./components/RiskGauge"
-import ModelMetrics     from "./components/ModelMetrics"
-import AttackChainViewer from "./components/AttackChainViewer"
+import React, { useState, useEffect } from 'react';
+import IncidentFeed from './components/IncidentFeed';
+import ThreatMap from './components/ThreatMap';
+import AttackTimeline from './components/AttackTimeline';
+import AttackChainViewer from './components/AttackChainViewer';
+import ModelMetrics from './components/ModelMetrics';
+import RiskGauge from './components/RiskGauge';
 
-export default function App() {
-  const [selectedIncident, setSelectedIncident] = useState(null)
-  const [lastUpdated, setLastUpdated]           = useState("—")
-  const [live, setLive]                         = useState(false)
+function App() {
+  const [incidents, setIncidents] = useState([]);
+  const [selectedIncident, setSelectedIncident] = useState(null);
 
-  // Track WS connectivity for status dot
+  // Fetch initial incidents
   useEffect(() => {
-    const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/live`)
-    ws.onopen  = () => setLive(true)
-    ws.onclose = () => setLive(false)
-    ws.onmessage = () => setLastUpdated(new Date().toLocaleTimeString())
-    return () => ws.close()
-  }, [])
+    fetch('/api/incidents')
+      .then(res => res.json())
+      .then(data => setIncidents(data))
+      .catch(err => console.error('Failed to fetch incidents:', err));
+  }, []);
+
+  // WebSocket connection – direct to backend port 8000
+  useEffect(() => {
+    const wsUrl = 'ws://localhost:8000/ws/live';
+    const ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => console.log('✅ WebSocket connected to', wsUrl);
+    ws.onerror = (err) => console.error('❌ WebSocket error', err);
+    ws.onmessage = (event) => {
+      try {
+        const newIncident = JSON.parse(event.data);
+        console.log('📡 New incident received:', newIncident.incident_id);
+        setIncidents(prev => [newIncident, ...prev]);
+        setSelectedIncident(newIncident);
+      } catch (e) {
+        console.error('Failed to parse incident:', e);
+      }
+    };
+
+    return () => ws.close();
+  }, []);
+
+  const handleSelectIncident = (incident) => {
+    setSelectedIncident(incident);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 font-mono">
-      {/* ── Header ── */}
-      <header className="flex items-center justify-between px-6 py-3 border-b border-gray-800 bg-gray-900">
-        <span className="text-lg font-bold tracking-widest text-cyan-400">NORMATIVE</span>
-        <div className="flex items-center gap-3 text-sm text-gray-400">
-          <span
-            className={`w-2 h-2 rounded-full ${live ? "bg-green-400 animate-pulse" : "bg-red-500"}`}
-          />
-          <span>{live ? "LIVE" : "DISCONNECTED"}</span>
-          <span className="text-gray-600">|</span>
-          <span>Last event: {lastUpdated}</span>
-        </div>
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-blue-900 text-white p-4 shadow-md">
+        <h1 className="text-2xl font-bold">Normative – Cybersecurity Dashboard</h1>
       </header>
-
-      {/* ── Two-column body ── */}
-      <div className="grid grid-cols-5 gap-4 p-4 h-[calc(100vh-56px)]">
-
-        {/* ── LEFT COL (60%) ── */}
-        <div className="col-span-3 flex flex-col gap-4 overflow-hidden">
-          <div className="flex-none h-64">
-            <ThreatMap selectedIncident={selectedIncident} />
+      <div className="container mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 space-y-4">
+          <div className="bg-white rounded-lg shadow p-4">
+            <RiskGauge incident={selectedIncident} />
           </div>
-          <div className="flex-none h-36 overflow-x-auto">
-            <AttackTimeline incident={selectedIncident} />
-          </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow p-4">
             <AttackChainViewer incident={selectedIncident} />
           </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <AttackTimeline incidents={incidents} onSelect={handleSelectIncident} />
+          </div>
         </div>
-
-        {/* ── RIGHT COL (40%) ── */}
-        <div className="col-span-2 flex flex-col gap-4 overflow-hidden">
-          <div className="flex-none">
+        <div className="space-y-4">
+          <div className="bg-white rounded-lg shadow p-4">
+            <ThreatMap incidents={incidents} />
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
             <ModelMetrics />
           </div>
-          <div className="flex-1 overflow-y-auto">
-            <IncidentFeed onSelect={(inc) => {
-              setSelectedIncident(inc)
-              setLastUpdated(new Date().toLocaleTimeString())
-            }} />
-          </div>
-          <div className="flex-none">
-            <RiskGauge score={selectedIncident?.risk_score ?? 0} />
+          <div className="bg-white rounded-lg shadow p-4">
+            <IncidentFeed incidents={incidents} onSelect={handleSelectIncident} />
           </div>
         </div>
-
       </div>
     </div>
-  )
+  );
 }
+
+export default App;

@@ -1,0 +1,86 @@
+{
+  "incident_id": "INC-20260606-084026",
+  "detected_at": "2026-06-06T08:40:26.861374+00:00",
+  "severity": "critical",
+  "risk_score": 83,
+  "affected_assets": [
+    "203.0.113.99"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "technique_id": "T1547",
+      "technique_name": "Boot or Logon Autostart Execution",
+      "tactic": "Persistence",
+      "confidence": 0.4181031584739685,
+      "timestamp": "2026-06-06T08:40:26.861374+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 2,
+      "technique_id": "T1490",
+      "technique_name": "Inhibit System Recovery",
+      "tactic": "Impact",
+      "confidence": 0.4181031584739685,
+      "timestamp": "2026-06-06T08:40:26.861374+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 3,
+      "technique_id": "T1486",
+      "technique_name": "Data Encrypted for Impact",
+      "tactic": "Impact",
+      "confidence": 0.4181031584739685,
+      "timestamp": "2026-06-06T08:40:26.861374+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 4,
+      "technique_id": "T1048",
+      "technique_name": "Exfiltration Over Alternative Protocol",
+      "tactic": "Exfiltration",
+      "confidence": 0.4181031584739685,
+      "timestamp": "2026-06-06T08:40:26.861374+00:00",
+      "event_ids": []
+    },
+    {
+      "step": 5,
+      "technique_id": "T1110",
+      "technique_name": "Brute Force",
+      "tactic": "Credential Access",
+      "confidence": 0.4181031584739685,
+      "timestamp": "2026-06-06T08:40:26.861374+00:00",
+      "event_ids": []
+    }
+  ],
+  "predicted_next": {
+    "technique_id": "T1059",
+    "technique_name": "Command and Scripting Interpreter",
+    "tactic": "Execution",
+    "probability": 0.3394
+  },
+  "anomaly_scores": {
+    "lstm": 1.0,
+    "iforest": 0.453763,
+    "gnn": 0.4181031584739685
+  },
+  "model_metrics": {},
+  "llm_context": {
+    "summary": "Boot or Logon Autostart Execution \u2192 Inhibit System Recovery \u2192 Data Encrypted for Impact \u2192 Exfiltration Over Alternative Protocol \u2192 Brute Force",
+    "mitre_tags": [
+      "T1547",
+      "T1490",
+      "T1486",
+      "T1048",
+      "T1110"
+    ],
+    "severity_reason": "Multiple failed login attempts followed by a successful authentication, indicating a password guessing or brute-force attack."
+  },
+  "raw_event_ids": [
+    "9c3bb6a2-e822-4ba4-ad03-d0f97cb5e5c6",
+    "8b8a7167-57d2-4c01-8d83-3a9fec289521",
+    "42bae432-aeba-4218-9e22-fcaa2d1ca2d1",
+    "34f0776c-29ca-446f-822c-0fb6e609d2a8",
+    "0754ca05-cca1-4a84-8812-95b18c8208f3"
+  ]
+}
