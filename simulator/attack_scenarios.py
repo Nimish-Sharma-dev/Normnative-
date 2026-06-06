@@ -15,11 +15,12 @@ INTERNAL_DB   = "192.168.1.30"    # internal DB server
 
 # ── Benign baseline events (played first for ~90 seconds) ────────────────────
 # These train the IForest baseline and give the LSTM its "normal" window.
+# All benign events now use ATTACKER_IP as source to fill the ML window quickly.
 
 BENIGN_EVENTS = [
-    # Normal web traffic
+    # Normal web traffic from attacker IP to internal web
     {
-        "source_type": "network", "src_ip": "198.51.100.1", "dest_ip": INTERNAL_WEB,
+        "source_type": "network", "src_ip": ATTACKER_IP, "dest_ip": INTERNAL_WEB,
         "src_port": 54321, "dest_port": 443, "action": "HTTP_REQUEST",
         "status": "SUCCESS", "http_status": 200, "bytes_sent": 4200,
         "uri_query": "/index.html", "payload_flags": [],
@@ -28,7 +29,7 @@ BENIGN_EVENTS = [
         "cpu_pct": None, "non_admin_user": None,
     },
     {
-        "source_type": "network", "src_ip": "198.51.100.2", "dest_ip": INTERNAL_WEB,
+        "source_type": "network", "src_ip": ATTACKER_IP, "dest_ip": INTERNAL_WEB,
         "src_port": 55000, "dest_port": 443, "action": "HTTP_REQUEST",
         "status": "SUCCESS", "http_status": 200, "bytes_sent": 8100,
         "uri_query": "/api/products", "payload_flags": [],
@@ -36,9 +37,9 @@ BENIGN_EVENTS = [
         "child_proc": None, "file_path": None, "file_ops": None,
         "cpu_pct": None, "non_admin_user": None,
     },
-    # Normal login
+    # Normal login from attacker IP to auth server
     {
-        "source_type": "auth", "src_ip": "192.168.1.50", "dest_ip": INTERNAL_AUTH,
+        "source_type": "auth", "src_ip": ATTACKER_IP, "dest_ip": INTERNAL_AUTH,
         "src_port": 0, "dest_port": 22, "action": "LOGIN_ATTEMPT",
         "status": "SUCCESS", "user": "devops", "process_name": None,
         "parent_proc": None, "child_proc": None, "bytes_sent": None,
@@ -46,9 +47,9 @@ BENIGN_EVENTS = [
         "file_ops": None, "cpu_pct": None, "non_admin_user": True,
         "http_status": None,
     },
-    # Normal file write
+    # Normal file write on internal web – keep src_ip = ATTACKER_IP for consistency
     {
-        "source_type": "endpoint", "src_ip": INTERNAL_WEB, "dest_ip": INTERNAL_WEB,
+        "source_type": "endpoint", "src_ip": ATTACKER_IP, "dest_ip": INTERNAL_WEB,
         "src_port": 0, "dest_port": 0, "action": "FILE_WRITE",
         "status": None, "user": "www-data", "process_name": "nginx",
         "parent_proc": "systemd", "child_proc": None, "bytes_sent": None,
@@ -59,6 +60,8 @@ BENIGN_EVENTS = [
 
 
 # ── APT Attack Chain — 8 steps, ordered by delay_after_prev_sec ──────────────
+# All attack events now use ATTACKER_IP as src_ip to fill the ML window on the
+# same host that generated the benign baseline.
 
 APT_SCENARIO = [
 
@@ -112,7 +115,7 @@ APT_SCENARIO = [
         "step": 3, "technique_id": "T1059", "delay_after_prev_sec": 20,
         "repeat": 1,
         "event": {
-            "source_type": "endpoint", "src_ip": INTERNAL_WEB, "dest_ip": INTERNAL_WEB,
+            "source_type": "endpoint", "src_ip": ATTACKER_IP, "dest_ip": INTERNAL_WEB,
             "src_port": 0, "dest_port": 0, "action": "PROCESS_SPAWN",
             "status": None, "user": "www-data", "process_name": "/bin/bash",
             "parent_proc": "nginx", "child_proc": "/bin/bash",
@@ -127,7 +130,7 @@ APT_SCENARIO = [
         "step": 4, "technique_id": "T1547", "delay_after_prev_sec": 30,
         "repeat": 1,
         "event": {
-            "source_type": "syslog", "src_ip": INTERNAL_WEB, "dest_ip": INTERNAL_WEB,
+            "source_type": "syslog", "src_ip": ATTACKER_IP, "dest_ip": INTERNAL_WEB,
             "src_port": 0, "dest_port": 0, "action": "CRON_MODIFY",
             "status": None, "user": "www-data", "process_name": "cron",
             "parent_proc": None, "child_proc": None, "bytes_sent": None,
@@ -143,7 +146,7 @@ APT_SCENARIO = [
         "step": 5, "technique_id": "T1490", "delay_after_prev_sec": 40,
         "repeat": 1,
         "event": {
-            "source_type": "endpoint", "src_ip": INTERNAL_WEB, "dest_ip": INTERNAL_WEB,
+            "source_type": "endpoint", "src_ip": ATTACKER_IP, "dest_ip": INTERNAL_WEB,
             "src_port": 0, "dest_port": 0, "action": "delete shadows",
             "status": None, "user": "root", "process_name": "vssadmin.exe",
             "parent_proc": "/bin/bash", "child_proc": None,
@@ -158,7 +161,7 @@ APT_SCENARIO = [
         "step": 6, "technique_id": "T1486", "delay_after_prev_sec": 45,
         "repeat": 1,
         "event": {
-            "source_type": "syslog", "src_ip": INTERNAL_WEB, "dest_ip": INTERNAL_WEB,
+            "source_type": "syslog", "src_ip": ATTACKER_IP, "dest_ip": INTERNAL_WEB,
             "src_port": 0, "dest_port": 0, "action": "BULK_FILE_OPERATION",
             "status": None, "user": None, "process_name": "cryptd",
             "parent_proc": None, "child_proc": None,
@@ -173,7 +176,7 @@ APT_SCENARIO = [
         "step": 7, "technique_id": "T1048", "delay_after_prev_sec": 60,
         "repeat": 1,
         "event": {
-            "source_type": "network", "src_ip": INTERNAL_DB, "dest_ip": EXFIL_IP,
+            "source_type": "network", "src_ip": ATTACKER_IP, "dest_ip": EXFIL_IP,
             "src_port": 43000, "dest_port": 443, "action": "NETWORK_FLOW",
             "status": None, "user": None, "process_name": None,
             "parent_proc": None, "child_proc": None,

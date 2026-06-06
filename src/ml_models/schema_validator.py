@@ -18,34 +18,56 @@ from pathlib import Path
 log = logging.getLogger("schema_validator")
 
 # ---------------------------------------------------------------------------
-# Load schemas once at import time
+# Locate contracts directory (project root / contracts)
 # ---------------------------------------------------------------------------
-_CONTRACTS_DIR = Path(__file__).parent.parent / "contracts"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]   # goes up to Normnative/
+CONTRACTS_DIR = PROJECT_ROOT / "contracts"
 
-def _load(filename: str) -> dict:
-    path = _CONTRACTS_DIR / filename
-    with open(path, "r") as f:
-        return json.load(f)
+# ---------------------------------------------------------------------------
+# Define schema variables (initialise to None)
+# ---------------------------------------------------------------------------
+_NORMALIZED_EVENT_SCHEMA = None
+_ANOMALY_SCORE_SCHEMA = None
+_ML_FEATURE_VECTOR_SCHEMA = None
+_SCHEMAS_LOADED = False
 
-try:
-    _NORMALIZED_EVENT_SCHEMA  = _load("normalized_event_object.schema.json")
-    _ANOMALY_SCORE_SCHEMA     = _load("anomaly_score_object.schema.json")
-    _ML_FEATURE_VECTOR_SCHEMA = _load("ml_feature_vector.schema.json")
+
+def _load(filename: str) -> dict | None:
+    """Load a JSON schema from the contracts directory."""
+    path = CONTRACTS_DIR / filename
+    if not path.exists():
+        log.warning("Schema file not found: %s", path)
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        log.error("Failed to load schema %s: %s", path, e)
+        return None
+
+
+# Try to load all schemas
+_NORMALIZED_EVENT_SCHEMA = _load("normalized_event_object.schema.json")
+_ANOMALY_SCORE_SCHEMA = _load("anomaly_score_object.schema.json")
+_ML_FEATURE_VECTOR_SCHEMA = _load("ml_feature_vector.schema.json")
+
+if all(s is not None for s in (_NORMALIZED_EVENT_SCHEMA, _ANOMALY_SCORE_SCHEMA, _ML_FEATURE_VECTOR_SCHEMA)):
     _SCHEMAS_LOADED = True
-except FileNotFoundError as e:
-    log.warning("Contract schema files not found (%s) — validation disabled.", e)
-    _SCHEMAS_LOADED = False
+    log.info("All contract schemas loaded successfully from %s", CONTRACTS_DIR)
+else:
+    log.warning("Some contract schemas missing – validation will be skipped.")
 
 
 # ---------------------------------------------------------------------------
 # Core validator (uses jsonschema if available, falls back to key checks)
 # ---------------------------------------------------------------------------
-def _validate(instance: dict, schema: dict) -> tuple[bool, str]:
+def _validate(instance: dict, schema: dict | None) -> tuple[bool, str]:
     """
     Returns (True, "") on success or (False, error_message) on failure.
-    Tries jsonschema first; falls back to required-field check only.
+    If schema is None or jsonschema not installed, does a lightweight check.
     """
-    if not _SCHEMAS_LOADED:
+    if schema is None:
+        # No schema → skip validation
         return True, ""
 
     try:

@@ -40,7 +40,7 @@ FEATURE_ORDER = [
     "dest_port_norm",
 ]
 
-WINDOW_SIZE = 20          # events per sliding window per host
+WINDOW_SIZE = 5         # events per sliding window per host
 INPUT_DIM   = len(FEATURE_ORDER)   # = 11, passed to Dev 2 as input_dim
 
 

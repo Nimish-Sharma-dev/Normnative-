@@ -2,11 +2,14 @@
 NORMATIVE // DEV 4 — FastAPI Backend
 All 5 API routes + WebSocket live stream
 """
+import json
+import os
+import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-import redis, json, asyncio, os
-from ws_manager import ConnectionManager
+import redis
+from .ws_manager import ConnectionManager   # relative import from same package
 
 app = FastAPI(title="Normative API")
 
