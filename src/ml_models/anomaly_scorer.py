@@ -39,7 +39,7 @@ REDIS_DB     = 0
 
 COMPOSITE_LSTM_WEIGHT   = 0.6
 COMPOSITE_IFOREST_WEIGHT = 0.4
-COMPOSITE_THRESHOLD      = 0.6   # is_anomaly = True if composite > this
+COMPOSITE_THRESHOLD      = 0.75  # is_anomaly = True if composite > this
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [SCORER] %(message)s")
 log = logging.getLogger("anomaly_scorer")

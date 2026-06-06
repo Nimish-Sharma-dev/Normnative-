@@ -157,17 +157,21 @@ class GNNInference:
       - GNN_OUTPUT schema assembly
     """
 
-    def __init__(self, weights_path: Optional[str] = None, device: str = "cpu"):
-        self.device = torch.device(device)
-        self.model = NormativeGNN().to(self.device)
+        # Resolve default weights path if None or if the Linux default is passed but doesn't exist
+        if weights_path is None or (weights_path == "/app/gnn/models/gnn_weights.pt" and not Path(weights_path).exists()):
+            weights_path = Path(__file__).resolve().parent / "models" / "gnn_weights.pt"
 
         if weights_path:
-            try:
-                state = torch.load(weights_path, map_location=self.device)
-                self.model.load_state_dict(state)
-                logger.info("GNN weights loaded from %s", weights_path)
-            except FileNotFoundError:
-                logger.warning("Weights not found at %s — using random init", weights_path)
+            weights_path = Path(weights_path)
+            if weights_path.exists():
+                try:
+                    state = torch.load(weights_path, map_location=self.device)
+                    self.model.load_state_dict(state)
+                    logger.info("GNN weights loaded from %s", weights_path)
+                except Exception as exc:
+                    logger.warning("Failed to load GNN weights from %s: %s", weights_path, exc)
+            else:
+                logger.info("GNN weights not found at %s — using random init (demo mode)", weights_path)
         else:
             logger.info("No weights path provided — using random init (demo mode)")
 
