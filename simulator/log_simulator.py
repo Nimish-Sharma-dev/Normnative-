@@ -151,7 +151,7 @@ def main():
 
     run_attack_phase(r, scenario, speed, args.dry_run)
 
-    print("\n[SIMULATOR] Full simulation complete.")
+    print("\n[SIMULATOR] Full complete.")
 
 
 if __name__ == "__main__":
