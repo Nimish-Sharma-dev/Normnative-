@@ -47,9 +47,9 @@ def compute_risk_score(
     Compute an integer risk score in range [0, 100].
 
     Weights:
-        0.4 — composite_ml_score (LSTM + IForest blend from Dev 2)
-        0.4 — gnn_confidence     (node classification confidence from GNN)
-        0.2 — mitre_severity_weight (technique-level severity from Dev 1 rules)
+        0.3 — composite_ml_score (LSTM + IForest blend from Dev 2)
+        0.1 — gnn_confidence     (node classification confidence from GNN)
+        0.6 — mitre_severity_weight (technique-level severity from Dev 1 rules)
 
     All three inputs must be floats in [0.0, 1.0].
     Inputs outside that range are clamped with a warning.
@@ -59,7 +59,9 @@ def compute_risk_score(
     gnn = _clamp(gnn_confidence, "gnn_confidence")
     msw = _clamp(mitre_severity_weight, "mitre_severity_weight")
 
-    raw = (0.4 * cms) + (0.4 * gnn) + (0.2 * msw)
+    raw = (0.3 * cms) + (0.1 * gnn) + (0.6 * msw)
+    # Ensure that a highly severe rule match guarantees a high risk score
+    raw = max(raw, msw)
     score = min(100, int(raw * 100))
 
     logger.debug(

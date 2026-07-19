@@ -24,7 +24,7 @@ services:
   # ─────────────────────────────────────────────
   api:
     build:
-      context: ./api
+      context: ./src/dashboard_api/api
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
@@ -60,7 +60,7 @@ services:
   # ─────────────────────────────────────────────
   ingestor:
     build:
-      context: ./ingestor
+      context: .
       dockerfile: Dockerfile
     depends_on:
       redis:
@@ -68,13 +68,14 @@ services:
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
+    command: ["python", "src/ingestor/normative_ingestor.py"]
 
   # ─────────────────────────────────────────────
   # ML models — LSTM + IForest + metrics (Dev 2)
   # ─────────────────────────────────────────────
   ml_models:
     build:
-      context: ./ml_models
+      context: .
       dockerfile: Dockerfile
     depends_on:
       redis:
@@ -83,14 +84,15 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
     volumes:
-      - ./ml_models/models:/app/models
+      - ./src/ml_models/models:/app/models
+    command: ["python", "src/ml_models/anomaly_scorer.py"]
 
   # ─────────────────────────────────────────────
   # GNN + incident assembler (Dev 3)
   # ─────────────────────────────────────────────
   gnn:
     build:
-      context: ./gnn
+      context: .
       dockerfile: Dockerfile
     depends_on:
       redis:
@@ -103,7 +105,26 @@ services:
       OUTPUT_DIR: /app/output/incidents
     volumes:
       - ./output:/app/output
-      - ./gnn/models:/app/models
+      - ./src/gnn_fusion/models:/app/models
+    command: ["python", "src/gnn_fusion/incident_assembler.py"]
+
+  # ─────────────────────────────────────────────
+  # Simulator (Dev 1) - Generates test events continuously
+  # ─────────────────────────────────────────────
+  simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      redis:
+        condition: service_healthy
+      ingestor:
+        condition: service_started
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    # Loop the fast scenario so the dashboard always has new events
+    command: ["sh", "-c", "while true; do python simulator/log_simulator.py --scenario fast --speed 4 --redis-host redis; sleep 10; done"]
 
 volumes:
   # Shared output volume so both api and gnn can read/write incidents

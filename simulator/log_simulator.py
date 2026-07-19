@@ -85,8 +85,11 @@ def run_benign_phase(r, duration_sec: int, speed: float, dry_run: bool):
 def run_attack_phase(r, scenario: list, speed: float, dry_run: bool):
     """Replay the APT scenario step by step."""
     print(f"\n[SIMULATOR] *** ATTACK PHASE STARTING *** ({speed}× speed)\n")
+    import random
+    scenario_copy = list(scenario)
+    random.shuffle(scenario_copy)
     total = 0
-    for step_def in scenario:
+    for step_def in scenario_copy:
         step_num   = step_def["step"]
         tech_id    = step_def["technique_id"]
         delay      = step_def["delay_after_prev_sec"]

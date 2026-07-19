@@ -118,6 +118,7 @@ class NormativeIngestor:
         self.r.publish("features:graph", json.dumps(graph_edge))
 
         if ml_vector is not None:
+            ml_vector["matched_rules"] = matched_rules
             self.r.lpush("features:ml", json.dumps(ml_vector))
             self.r.publish("features:ml", json.dumps(ml_vector))
 
@@ -212,9 +213,10 @@ class NormativeIngestor:
 
 
 def main():
+    import os
     parser = argparse.ArgumentParser(description="Normative Ingestor Service")
-    parser.add_argument("--redis-host", default="localhost")
-    parser.add_argument("--redis-port", type=int, default=6379)
+    parser.add_argument("--redis-host", default=os.getenv("REDIS_HOST", "localhost"))
+    parser.add_argument("--redis-port", type=int, default=int(os.getenv("REDIS_PORT", 6379)))
     args = parser.parse_args()
 
     try:

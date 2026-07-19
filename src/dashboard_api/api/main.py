@@ -9,7 +9,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import redis
-from .ws_manager import ConnectionManager   # relative import from same package
+from ws_manager import ConnectionManager
 
 app = FastAPI(title="Normative API")
 
@@ -62,17 +62,21 @@ def get_metrics() -> dict:
     """Live model performance metrics (Dev 2 writes to metrics:current in Redis)."""
     raw = r.get("metrics:current")
     if raw:
-        return json.loads(raw)
-    return {
-        "fpr": 0.03,
-        "precision": 0.94,
-        "recall": 0.91,
-        "f1": 0.925,
-        "accuracy": 0.96,
-        "total_events_processed": 0,
-        "total_anomalies_detected": 0,
-        "last_updated": "—",
-    }
+        data = json.loads(raw)
+    else:
+        data = {
+            "fpr": 0.03,
+            "precision": 0.94,
+            "recall": 0.91,
+            "f1": 0.925,
+            "accuracy": 0.96,
+            "last_updated": "—",
+        }
+    
+    # Inject real-time counts
+    data["total_events_processed"] = r.llen("events:normalized") or 0
+    data["total_anomalies_detected"] = r.llen("incidents:new") or 0
+    return data
 
 
 # ─────────────────────────────────────────────
@@ -182,3 +186,13 @@ async def websocket_live(ws: WebSocket):
             pubsub.close()
         except Exception:
             pass
+
+
+# ─────────────────────────────────────────────
+# Route 6 — GET /api/events
+# ─────────────────────────────────────────────
+@app.get("/api/events")
+def get_events(limit: int = 100) -> list:
+    """Return last `limit` normalized events, newest first."""
+    raw = r.lrange("events:normalized", 0, limit - 1)
+    return [json.loads(x) for x in raw]

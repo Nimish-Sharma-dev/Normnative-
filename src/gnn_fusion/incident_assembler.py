@@ -353,8 +353,6 @@ class IncidentAssemblerService:
         # Only process anomalies above threshold
         if not score_obj.get("is_anomaly", False):
             return
-        if score_obj.get("composite_ml_score", 0.0) < ANOMALY_THRESHOLD:
-            return
 
         event_id = score_obj.get("event_id", "unknown")
         logger.info("Processing anomaly: event_id=%s score=%.3f", event_id, score_obj.get("composite_ml_score"))

@@ -19,7 +19,7 @@ MITRE_RULES = [
             "Multiple failed login attempts followed by a successful authentication, "
             "indicating a password guessing or brute-force attack."
         ),
-        "severity_weight":  0.75,
+        "severity_weight":  0.50, # Medium
     },
     {
         "rule_id":          "RULE_002",
@@ -34,7 +34,7 @@ MITRE_RULES = [
             "Adversary exploited a web application vulnerability (e.g., LFI, RCE) "
             "to gain unauthorized access to the server."
         ),
-        "severity_weight":  0.80,
+        "severity_weight":  0.65, # High
     },
     {
         "rule_id":          "RULE_003",
@@ -49,7 +49,7 @@ MITRE_RULES = [
             "Web server process spawned an interactive shell, indicating a successful "
             "remote code execution (RCE) or webshell deployment."
         ),
-        "severity_weight":  0.90,
+        "severity_weight":  0.80, # Critical
     },
     {
         "rule_id":          "RULE_004",
@@ -64,7 +64,7 @@ MITRE_RULES = [
             "Adversary attempted to delete volume shadow copies or system backups "
             "to prevent data recovery prior to ransomware execution."
         ),
-        "severity_weight":  0.95,
+        "severity_weight":  0.75, # High
     },
     {
         "rule_id":              "RULE_005",
@@ -80,7 +80,7 @@ MITRE_RULES = [
             "Automated, high-velocity file modification and encryption patterns "
             "consistent with an active ransomware deployment."
         ),
-        "severity_weight":      1.00,
+        "severity_weight":      1.00, # Critical
     },
     {
         "rule_id":                  "RULE_006",
@@ -95,7 +95,7 @@ MITRE_RULES = [
             "Unusually large outbound data transfer to an unverified external "
             "destination, indicating a data breach or exfiltration event."
         ),
-        "severity_weight":          0.85,
+        "severity_weight":          0.85, # Critical
     },
     {
         "rule_id":              "RULE_007",
@@ -115,7 +115,7 @@ MITRE_RULES = [
             "Creation of persistent system tasks or registry modifications designed "
             "to maintain access across server reboots."
         ),
-        "severity_weight":      0.70,
+        "severity_weight":      0.45, # Medium
     },
 ]
 

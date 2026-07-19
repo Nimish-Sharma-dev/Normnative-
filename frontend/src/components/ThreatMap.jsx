@@ -1,120 +1,140 @@
-// NORMATIVE // DEV 4 — ThreatMap
-// Reads from incidents via WebSocket:
-//   incident.affected_assets[]   → IPs to geo-locate
-//   incident.risk_score          → circle radius (risk_score / 10)
-//   incident.severity            → circle color
-//   incident.attack_chain[0].technique_name → popup
-//   incident.incident_id         → popup label
-//
-// Hardcoded geolocations for simulator IPs:
-//   203.0.113.99  → Beijing, China       (39.9042, 116.4074)
-//   45.33.32.156  → Fremont, CA, USA     (37.5485, -121.9886)
-//   192.168.1.*   → internal (omitted from world map)
+import { useMemo } from 'react';
+import { MapContainer, GeoJSON, CircleMarker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import geoData from './countries.geo.json';
 
-import { useEffect, useState, useRef } from "react"
-import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet"
-import "leaflet/dist/leaflet.css"
+const SEVERITY_COLORS = {
+  critical: '#FF4444',
+  high: '#FF8C00',
+  medium: '#FFD700',
+  low: '#00FF88',
+};
 
-const HARDCODED_GEO = {
-  "203.0.113.99":  { lat: 39.9042,  lng: 116.4074, label: "Beijing, China"  },
-  "45.33.32.156":  { lat: 37.5485,  lng: -121.9886, label: "Fremont, CA"    },
+const IP_LOCATIONS = {
+  '203.0.113.99': { lat: 39.9042, lng: 116.4074, city: 'Beijing' },
+  '45.33.32.156': { lat: 37.5485, lng: -121.9886, city: 'Fremont, CA' },
+  '198.51.100.23': { lat: 51.5074, lng: -0.1278, city: 'London' },
+  '185.220.101.1': { lat: 52.52, lng: 13.405, city: 'Berlin' },
+  '91.219.237.22': { lat: 59.3293, lng: 18.0686, city: 'Stockholm' },
+};
+
+function isInternalIP(ip) {
+  return ip.startsWith('192.168.') || ip.startsWith('10.');
 }
 
-const SEV_MAP_COLOR = {
-  critical: "#dc2626",
-  high:     "#f97316",
-  medium:   "#eab308",
-  low:      "#16a34a",
-}
+export default function ThreatMap({
+  incidents = [],
+  selectedIncidentId,
+  onSelectIncident,
+}) {
+  const { plotted, internalCount } = useMemo(() => {
+    const plotted = [];
+    let internalCount = 0;
 
-function resolveGeo(ip) {
-  if (HARDCODED_GEO[ip]) return HARDCODED_GEO[ip]
-  if (ip?.startsWith("192.168.") || ip?.startsWith("10.") || ip?.startsWith("172.")) return null
-  return null // unknown external — skip for now
-}
+    incidents.forEach((incident) => {
+      const assets = incident.affected_assets || [];
+      let hasExternal = false;
 
-export default function ThreatMap({ selectedIncident }) {
-  const [markers, setMarkers] = useState([])
+      assets.forEach((ip) => {
+        if (isInternalIP(ip)) {
+          internalCount++;
+          return;
+        }
+        const loc = IP_LOCATIONS[ip];
+        if (loc) {
+          hasExternal = true;
+          // Deduplicate mapped markers for clean rendering
+          if (!plotted.some(p => p.ip === ip && p.incident.incident_id === incident.incident_id)) {
+            plotted.push({
+              ...loc,
+              incident,
+              ip,
+            });
+          }
+        }
+      });
+      if (!hasExternal) return;
+    });
 
-  useEffect(() => {
-    // Seed map from existing incidents
-    fetch("/api/incidents")
-      .then(r => r.json())
-      .then(incidents => {
-        const pts = buildMarkers(incidents)
-        setMarkers(pts)
-      })
-      .catch(console.error)
+    return { plotted, internalCount };
+  }, [incidents]);
 
-    const ws = new WebSocket("ws://localhost:8000/ws/live")
-    ws.onmessage = (e) => {
-      try {
-        const inc = JSON.parse(e.data)
-        const pts = buildMarkers([inc])
-        setMarkers(prev => [...prev, ...pts])
-      } catch { /* ignore */ }
-    }
-    return () => ws.close()
-  }, [])
+  const severityColor = (severity) => SEVERITY_COLORS[severity] || SEVERITY_COLORS.low;
 
   return (
-    <div className="h-full rounded overflow-hidden border border-gray-800">
-      <MapContainer
-        center={[20, 0]}
-        zoom={2}
-        style={{ height: "100%", width: "100%", background: "#111827" }}
-        attributionControl={false}
-      >
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-        />
-        {markers.map((m, i) => (
-          <CircleMarker
-            key={i}
-            center={[m.lat, m.lng]}
-            radius={m.radius}
-            pathOptions={{
-              color: m.color,
-              fillColor: m.color,
-              fillOpacity: 0.55,
+    <div className="flex flex-col h-full w-full relative p-1">
+      <div className="flex-1 w-full rounded-lg overflow-hidden border border-[#00D4FF] cyber-grid-bg relative z-0 min-h-[300px] shadow-[0_0_15px_rgba(0,212,255,0.15)]">
+        <MapContainer
+          center={[20, 0]}
+          zoom={2}
+          minZoom={1.5}
+          maxZoom={10}
+          style={{ height: '100%', width: '100%' }}
+          zoomControl={true}
+          attributionControl={false}
+        >
+          <GeoJSON 
+            data={geoData} 
+            style={{
+              fillColor: '#050F1D',
               weight: 1.5,
-            }}
-          >
-            <Popup>
-              <div className="text-xs">
-                <div><strong>{m.incidentId}</strong></div>
-                <div>IP: {m.ip}</div>
-                <div>Risk: {m.riskScore}</div>
-                <div>Technique: {m.technique}</div>
-                <div>{m.geoLabel}</div>
-              </div>
-            </Popup>
-          </CircleMarker>
-        ))}
-      </MapContainer>
-    </div>
-  )
-}
+              color: 'rgba(0, 212, 255, 0.6)',
+              fillOpacity: 1,
+            }} 
+          />
 
-function buildMarkers(incidents) {
-  const out = []
-  for (const inc of incidents) {
-    for (const ip of inc.affected_assets ?? []) {
-      const geo = resolveGeo(ip)
-      if (!geo) continue
-      out.push({
-        lat:        geo.lat,
-        lng:        geo.lng,
-        geoLabel:   geo.label,
-        ip,
-        radius:     Math.max(4, (inc.risk_score ?? 0) / 10),
-        color:      SEV_MAP_COLOR[inc.severity] ?? "#6b7280",
-        incidentId: inc.incident_id,
-        riskScore:  inc.risk_score,
-        technique:  inc.attack_chain?.[0]?.technique_name ?? "—",
-      })
-    }
-  }
-  return out
+          {plotted.map((p, idx) => {
+            const color = severityColor(p.incident.severity);
+            const isSelected = p.incident.incident_id === selectedIncidentId;
+            // Radius = risk_score / 5
+            const radius = Math.max(p.incident.risk_score / 5, 4);
+
+            return (
+              <CircleMarker
+                key={`${p.incident.incident_id}-${p.ip}-${idx}`}
+                center={[p.lat, p.lng]}
+                radius={isSelected ? radius * 1.5 : radius}
+                fillColor={color}
+                color={color}
+                weight={isSelected ? 4 : 0}
+                fillOpacity={1}
+                pathOptions={{ className: 'glowing-marker' }}
+                eventHandlers={{
+                  click: () => {
+                    onSelectIncident?.(p.incident.incident_id);
+                  },
+                }}
+              >
+                <Popup className="custom-map-popup">
+                  <div className="bg-[#161B22] text-[#F0F6FC] border border-[var(--color-border)] p-2.5 rounded shadow-lg text-[11px] font-mono leading-relaxed">
+                    <div className="font-bold text-[var(--color-accent)] mb-1">
+                      Incident: {p.incident.incident_id}
+                    </div>
+                    <div>IP: {p.ip} ({p.city})</div>
+                    <div>Risk Score: <span className="font-bold text-white">{p.incident.risk_score}</span></div>
+                    {p.incident.attack_chain && p.incident.attack_chain.length > 0 && (
+                      <div className="mt-1 border-t border-[rgba(255,255,255,0.1)] pt-1 text-gray-400">
+                        Technique: {p.incident.attack_chain[0].technique_name}
+                      </div>
+                    )}
+                  </div>
+                </Popup>
+              </CircleMarker>
+            );
+          })}
+        </MapContainer>
+
+        {internalCount > 0 && (
+          <div className="absolute bottom-4 left-4 bg-[rgba(3,8,17,0.85)] border border-[#00D4FF] rounded px-3 py-1.5 text-center animate-fade-in shadow-[0_0_15px_rgba(0,212,255,0.3)] z-[1000] pointer-events-auto">
+            <span className="text-[#00D4FF] text-[10px] font-mono tracking-widest uppercase">
+              Internal Threats:
+            </span>
+            <span className="text-[#00FF88] text-sm font-bold font-mono ml-2">
+              {internalCount}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

@@ -30,12 +30,13 @@ from src.ml_models.lstm_autoencoder import score_window_lstm, WINDOW_SIZE, ANOMA
 from src.ml_models.isolation_forest import get_scorer
 from src.ml_models.schema_validator import validate_ml_feature_vector, validate_anomaly_score
 
+import os
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
-REDIS_HOST   = "localhost"
-REDIS_PORT   = 6379
-REDIS_DB     = 0
+REDIS_HOST   = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT   = int(os.getenv("REDIS_PORT", 6379))
+REDIS_DB     = int(os.getenv("REDIS_DB", 0))
 
 COMPOSITE_LSTM_WEIGHT   = 0.6
 COMPOSITE_IFOREST_WEIGHT = 0.4
@@ -61,15 +62,6 @@ def score_window(host_key: str, feature_vectors: list[dict]) -> dict:
     """
     Input:  list of ML_FEATURE_VECTOR dicts (len == WINDOW_SIZE)
     Output: ANOMALY_SCORE_OBJECT — published to Redis channel scores:anomaly
-
-    Schema:
-        event_id           str   — event_id of the most recent event in window
-        timestamp          str   — ISO 8601 UTC
-        lstm_score         float — reconstruction error, normalised 0.0-1.0
-        iforest_score      float — isolation forest score, normalised 0.0-1.0
-        composite_ml_score float — 0.6 * lstm_score + 0.4 * iforest_score
-        is_anomaly         bool  — True if composite_ml_score > 0.6
-        window_events      list  — event_id for every event in the window
     """
     lstm_score    = score_window_lstm(feature_vectors)
     iforest_score = get_scorer().score(feature_vectors[-1])   # point score on latest event
@@ -77,14 +69,28 @@ def score_window(host_key: str, feature_vectors: list[dict]) -> dict:
     composite = round(
         COMPOSITE_LSTM_WEIGHT * lstm_score + COMPOSITE_IFOREST_WEIGHT * iforest_score, 6
     )
+    
+    # Aggregate all matched rules across the entire sliding window to preserve the attack chain
+    all_matched_rules = []
+    seen_rule_ids = set()
+    for fv in feature_vectors:
+        for rule in fv.get("matched_rules", []):
+            if rule["rule_id"] not in seen_rule_ids:
+                seen_rule_ids.add(rule["rule_id"])
+                all_matched_rules.append(rule)
+
+    max_severity = max([r.get("severity_weight", 0.0) for r in all_matched_rules], default=0.0)
+    is_anomaly = (composite >= COMPOSITE_THRESHOLD) or (max_severity >= 0.8)
 
     return {
         "event_id":           feature_vectors[-1]["event_id"],
+        "src_ip":             host_key,
+        "matched_rules":      all_matched_rules,
         "timestamp":          datetime.now(timezone.utc).isoformat(),
         "lstm_score":         round(lstm_score, 6),
         "iforest_score":      round(iforest_score, 6),
         "composite_ml_score": composite,
-        "is_anomaly":         composite > COMPOSITE_THRESHOLD,
+        "is_anomaly":         is_anomaly,
         "window_events":      [fv["event_id"] for fv in feature_vectors],
     }
 
@@ -163,6 +169,9 @@ def run() -> None:
             continue
 
         publish_score(r, score_obj)
+
+        if score_obj.get("is_anomaly"):
+            _windows[host_key].clear()
 
 
 if __name__ == "__main__":
