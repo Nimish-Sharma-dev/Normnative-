@@ -144,6 +144,66 @@ def get_graph(incident_id: str) -> dict:
 
 
 # ─────────────────────────────────────────────
+# Route 4b — GET /api/incidents/{incident_id}/counterfactual
+# ─────────────────────────────────────────────
+ACTION_BY_TACTIC = {
+    "Initial Access": "Block source IP / enforce MFA",
+    "Credential Access": "Force credential reset, enable lockout policy",
+    "Execution": "Block process execution via EDR policy",
+    "Persistence": "Remove autostart entry, isolate host",
+    "Command and Control": "Sinkhole / block C2 domain-IP",
+    "Exfiltration": "Block egress, enable DNS/DLP inspection",
+}
+
+
+@app.get("/api/incidents/{incident_id}/counterfactual")
+def get_counterfactual(incident_id: str) -> dict:
+    """
+    For each step in the attack chain, estimate what % of the chain would
+    have been prevented by blocking it there (chokepoint analysis — earlier
+    steps prevent more downstream damage). Returns the best pick plus the
+    full ranked list, matching the shape CounterfactualPanel.jsx expects.
+    """
+    incident = get_incident(incident_id)
+    chain = incident.get("attack_chain", []) if incident else []
+
+    if not chain:
+        return {"incident_id": incident_id, "minimum_intervention": None, "counterfactuals": []}
+
+    n = len(chain)
+    counterfactuals = []
+    for i, step in enumerate(chain):
+        tid = step.get("technique_id")
+        tname = step.get("technique_name")
+        tactic = step.get("tactic", "")
+        confidence = step.get("confidence", 0)
+        impact_pct = round((n - i) / n * 100)
+        action = ACTION_BY_TACTIC.get(tactic, "Isolate affected host and block the technique")
+
+        counterfactuals.append({
+            "blocked_technique_id": tid,
+            "blocked_technique_name": tname,
+            "tactic": tactic,
+            "confidence": confidence,
+            "impact_pct": impact_pct,
+            "blocking_mechanism": f"{action} at {tid} ({tactic})",
+            "recommendation": (
+                f"Blocking this at step {i + 1} of {n} would have prevented "
+                f"{n - i} of {n} downstream technique(s)."
+            ),
+        })
+
+    # Highest impact first (earliest choke point in the chain)
+    counterfactuals.sort(key=lambda c: c["impact_pct"], reverse=True)
+
+    return {
+        "incident_id": incident_id,
+        "minimum_intervention": counterfactuals[0],
+        "counterfactuals": counterfactuals,
+    }
+
+
+# ─────────────────────────────────────────────
 # Route 5 — GET /api/incidents/{incident_id}/download
 # ─────────────────────────────────────────────
 @app.get("/api/incidents/{incident_id}/download")
@@ -195,4 +255,4 @@ async def websocket_live(ws: WebSocket):
 def get_events(limit: int = 100) -> list:
     """Return last `limit` normalized events, newest first."""
     raw = r.lrange("events:normalized", 0, limit - 1)
-    return [json.loads(x) for x in raw]
+    return [json.loads(x) for x in raw]

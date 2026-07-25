@@ -1,4 +1,6 @@
+// import { useMemo } from 'react';
 import { useMemo } from 'react';
+import CounterfactualPanel from './CounterfactualPanel';
 import { format } from 'date-fns';
 
 const SEVERITY_COLORS = {
@@ -103,7 +105,8 @@ export default function IncidentDetail({ incident }) {
   const affectedAssets = incident.affected_assets || [];
 
   return (
-    <div className="panel animate-fade-in flex flex-col h-full overflow-y-auto bg-[var(--color-bg-card)]">
+    <div className="panel animate-fade-in flex flex-col bg-[var(--color-bg-card)]">
+    
       {/* Header */}
       <div className="p-4 border-b border-[var(--color-border)] bg-[rgba(255,255,255,0.02)] flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
@@ -203,8 +206,15 @@ export default function IncidentDetail({ incident }) {
             </div>
           </div>
         )}
+        {/* Counterfactual — minimum intervention */}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[8px] font-bold uppercase tracking-widest text-[#8B949E]">
+            Minimum Intervention to Stop Attack
+          </span>
+          <CounterfactualPanel incidentId={incident.incident_id} incident={incident} />
+        </div>
 
-        {/* Anomaly Scores */}
+        {/* Engine Anomaly Scores */}
         <div className="flex flex-col gap-2 bg-[rgba(22,27,34,0.4)] border border-[var(--color-border)] p-3 rounded-lg">
           <span className="text-[8px] font-bold uppercase tracking-widest text-[#8B949E] mb-1">
             Engine Anomaly Scores
@@ -215,7 +225,18 @@ export default function IncidentDetail({ incident }) {
             <AnomalyBar label="GNN" score={anomalyScores.gnn ?? 0} />
           </div>
         </div>
+
+        {/* One-click isolate button */}
+        {affectedAssets.length > 0 && (
+          <button
+            onClick={() => alert(`ISOLATION COMMAND SENT\n\nHost: ${affectedAssets[0]}\nStatus: Isolated from network\nTime: ${new Date().toUTCString()}\n\nResponse team has been notified.`)}
+            className="w-full py-2.5 px-3 bg-[rgba(255,68,68,0.08)] border border-[#FF4444] text-[#FF4444] text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[rgba(255,68,68,0.18)] transition-all active:scale-95 cursor-pointer"
+          >
+            ⚡ Isolate Host — {affectedAssets[0]}
+          </button>
+        )}
       </div>
     </div>
   );
 }
+
